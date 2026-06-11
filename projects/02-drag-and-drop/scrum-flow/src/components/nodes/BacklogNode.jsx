@@ -10,6 +10,12 @@ export default function BacklogNode({data,}) {
 
   const [stories, setStories] =
     useState(data.items || []);
+  
+  const [editingIndex, setEditingIndex] =
+    useState(null);
+
+  const [draggedIndex, setDraggedIndex] =
+    useState(null);
 
   const handleAddStory = () => {
 
@@ -21,6 +27,39 @@ export default function BacklogNode({data,}) {
     ]);
 
     setStory("");
+  };
+
+  const removeStory = (index) => {
+    setStories(
+      stories.filter(
+        (_, i) => i !== index
+      )
+    );
+  };
+
+  const updateStory = (index,value) => {
+    const updated = [...stories];
+    updated[index] = value;
+    setStories(updated);
+  };
+
+  // -------------------------
+  // DRAG AND DROP DE HISTORIAS
+  // -------------------------
+
+  const handleDragStart = (index) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDrop = (index) => {
+    if (draggedIndex === null) return;
+    const updated = [...stories];
+    const draggedItem =
+      updated[draggedIndex];
+    updated.splice(draggedIndex, 1);
+    updated.splice(index, 0, draggedItem);
+    setStories(updated);
+    setDraggedIndex(null);
   };
 
   // -------------------------
@@ -75,6 +114,13 @@ export default function BacklogNode({data,}) {
         <input
           type="text"
 
+          onKeyDown={(e) => {
+
+            if (e.key === "Enter") {
+              handleAddStory();
+            }
+          }}
+
           value={story}
 
           onChange={(e) =>
@@ -86,6 +132,7 @@ export default function BacklogNode({data,}) {
           "
 
           className="
+            nodrag
             w-full
             border
             rounded
@@ -123,19 +170,120 @@ export default function BacklogNode({data,}) {
 
           {stories.map(
             (item, index) => (
+              <div
+                key={index}
 
-            <div
-              key={index}
+                draggable
 
-              className="
-                p-2
-                bg-gray-100
-                rounded
-                text-sm
-              "
-            >
-              • {item}
-            </div>
+                onDragStart={() =>
+                  handleDragStart(index)
+                }
+
+                onDragOver={(e) =>
+                  e.preventDefault()
+                }
+
+                onDrop={() =>
+                  handleDrop(index)
+                }
+
+                className="
+                  nodrag
+                  p-2
+                  bg-gray-100
+                  rounded
+                  text-sm
+                  flex
+                  items-center
+                  justify-between
+                  gap-2
+                  cursor-move
+                "
+              >
+
+                {/* IZQUIERDA */}
+
+                <div className="
+                  flex
+                  items-center
+                  gap-2
+                  flex-1
+                ">
+
+                  <span>
+                    ☰
+                  </span>
+
+                  {editingIndex === index ? (
+
+                    <input
+                      autoFocus
+
+                      onKeyDown={(e) => {
+
+                        if (e.key === "Enter") {
+                          setEditingIndex(null);
+                        }
+                      }}
+
+                      value={item}
+
+                      onChange={(e) =>
+                        updateStory(
+                          index,
+                          e.target.value
+                        )
+                      }
+
+                      onBlur={() =>
+                        setEditingIndex(null)
+                      }
+
+                      className="
+                        nodrag
+                        border
+                        rounded
+                        px-2
+                        py-1
+                        w-full
+                      "
+                    />
+
+                  ) : (
+
+                    <span
+                      onClick={() =>
+                        setEditingIndex(index)
+                      }
+
+                      className="
+                        cursor-text
+                        flex-1
+                      "
+                    >
+                      {item}
+                    </span>
+                  )}
+
+                </div>
+
+                {/* DERECHA */}
+
+                <button
+                  onClick={() =>
+                    removeStory(index)
+                  }
+
+                  className="
+                    text-red-500
+                    hover:text-red-700
+                    font-bold
+                  "
+                >
+                  ✕
+                </button>
+
+              </div>
           ))}
 
         </div>
