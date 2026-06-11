@@ -9,4 +9,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // desarrollo y test
+  server: {
+    allowedHosts: ['catering-ocean-lid.ngrok-free.dev']
+  }
 })
